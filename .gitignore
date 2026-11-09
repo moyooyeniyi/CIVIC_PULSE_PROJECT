@@ -2,3 +2,5 @@ environ/
 __pycache__/
 .env
 data
+.astro
+airflow_settings.yaml
