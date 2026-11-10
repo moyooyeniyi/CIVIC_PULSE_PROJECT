@@ -1,12 +1,15 @@
 
 # CIVIC PULSE | Azure Data Engineering Pipeline
 
-An end-to-end cloud data engineering portfolio project using **Microsoft Azure, Python, Polars, PostgreSQL, Azure Data Factory, and Apache Airflow**.
+An end-to-end cloud data engineering portfolio project using **Microsoft Azure, Python, Polars, PostgreSQL, Azure Data Factory, Apache Airflow, Docker, and Terraform**.
 
-**Status:** In Progress  
+**Status:** Core Pipeline Successfully Executed | Terraform Infrastructure Deployed | Further Enhancements Planned
+
 **Cloud:** Microsoft Azure  
 **Architecture:** Medallion Architecture (Bronze, Silver, Gold)  
 **Domain:** Public Sector / Municipal Service Analytics
+
+---
 
 ## 1. Project Overview
 
@@ -16,11 +19,24 @@ Public service agencies handle large volumes of requests relating to infrastruct
 
 This project demonstrates the implementation of a Medallion Architecture using Azure Blob Storage, Python, Polars, Azure Data Factory, and Azure Database for PostgreSQL.
 
-The Bronze ingestion, Silver transformation, PostgreSQL Gold-layer table creation, and Azure Data Factory Silver-to-Gold pipeline have been implemented.
+The following components have been successfully implemented:
 
-Apache Airflow orchestration has also been implemented using Astronomer Astro CLI and Docker. A four-task DAG has been successfully executed, coordinating Python ingestion, Polars transformation, PostgreSQL table creation, and Azure Data Factory pipeline execution.
+- Bronze-layer data ingestion using Python and Azure Blob Storage.
+- Silver-layer transformation using Python and Polars.
+- PostgreSQL Gold-layer schema and table creation.
+- Azure Data Factory Silver-to-Gold data movement.
+- Apache Airflow workflow orchestration using Docker and Astronomer Astro CLI.
+- Infrastructure provisioning using Terraform and the AzureRM provider.
+
+The Azure Data Factory Copy activity successfully reported **654,156 records read and written**.
+
+A four-task Apache Airflow DAG also completed successfully, coordinating ingestion, transformation, PostgreSQL table preparation, and Azure Data Factory execution.
+
+Additionally, a separate Terraform deployment demonstrates Infrastructure as Code by provisioning Azure Storage, PostgreSQL, Azure Data Factory, a linked service, and a Parquet dataset.
 
 Further development will focus on independent data quality validation, monitoring, SQL analytics, and reporting.
+
+---
 
 ## 2. Project Objectives
 
@@ -32,14 +48,19 @@ Further development will focus on independent data quality validation, monitorin
 - Automate data movement using Azure Data Factory.
 - Orchestrate the pipeline using Apache Airflow.
 - Implement task dependencies and scheduled execution.
-- Validate pipeline results and document implementation evidence.
+- Demonstrate Infrastructure as Code using Terraform.
+- Validate pipeline execution and document implementation evidence.
 - Explore future reporting and analytical use cases.
+
+---
 
 ## 3. Technology Stack
 
 | Technology | Purpose |
 |---|---|
 | Microsoft Azure | Cloud infrastructure |
+| Terraform | Infrastructure as Code |
+| AzureRM Provider | Azure resource provisioning |
 | Azure Blob Storage | Bronze and Silver storage |
 | Python | Data ingestion and transformation |
 | Azure Storage SDK | Programmatic blob uploads |
@@ -54,39 +75,43 @@ Further development will focus on independent data quality validation, monitorin
 | Git and GitHub | Version control |
 | VS Code | Development environment |
 
+---
+
 ## 4. Data Architecture
 
 The solution follows a three-layer Medallion Architecture.
 
+### Operational Data Pipeline
+
 ```text
 Municipal Service Request Dataset (CSV)
-                 |
-                 v
+                  |
+                  v
         Python Ingestion Script
-                 |
-                 v
+                  |
+                  v
        Azure Blob Storage: BRONZE
-        urban_service_requests.csv
-                 |
-                 v
-           Python + Polars
-     Selection / Renaming / Parquet
-                 |
-                 v
+       urban_service_requests.csv
+                  |
+                  v
+             Python + Polars
+       Data Cleaning / Transformation
+                  |
+                  v
        Azure Blob Storage: SILVER
       urban_service_requests.parquet
-                 |
-                 v
-          Azure Data Factory
-            Copy Activity
-                 |
-                 v
+                  |
+                  v
+           Azure Data Factory
+             Copy Activity
+                  |
+                  v
        Azure Database for PostgreSQL
-           GOLD Schema / Table
-                 |
-                 v
-           Future SQL Analytics
-              and Reporting
+          GOLD Schema / Table
+                  |
+                  v
+        Future SQL Analytics
+             and Reporting
 ```
 
 ### Apache Airflow Orchestration
@@ -94,30 +119,57 @@ Municipal Service Request Dataset (CSV)
 Apache Airflow coordinates the pipeline stages through a DAG named `urban_city_requests`.
 
 ```text
-           Apache Airflow DAG
-           urban_city_requests
-                    |
-                    v
-          extract_data_from_api
-             Python Ingestion
-                    |
-                    v
-           transform_data_task
-            Polars Transformation
-                    |
-                    v
-             urban_city_table
-         PostgreSQL Schema / Table
-                    |
-                    v
-             run_data_factory
-          Azure Data Factory Pipeline
-                    |
-                    v
-             PostgreSQL Gold
+          Apache Airflow DAG
+          urban_city_requests
+                   |
+                   v
+         extract_data_from_api
+            Python Ingestion
+                   |
+                   v
+          transform_data_task
+           Polars Transformation
+                   |
+                   v
+            urban_city_table
+        PostgreSQL Schema / Table
+                   |
+                   v
+            run_data_factory
+         Azure Data Factory Pipeline
+                   |
+                   v
+            PostgreSQL Gold
 ```
 
 The DAG is configured with an hourly schedule, sequential task dependencies, and retry settings.
+
+### Terraform Infrastructure as Code
+
+A separate Terraform implementation demonstrates Azure infrastructure provisioning.
+
+```text
+              Terraform
+                  |
+                  v
+          Azure Resource Group
+                  |
+       +----------+----------+
+       |          |          |
+       v          v          v
+     Azure     PostgreSQL   Azure
+    Storage    Flexible     Data
+    Account     Server     Factory
+       |          |          |
+    +--+--+       v          v
+    |     |    Database    Blob Storage
+  Bronze Silver            Linked Service
+                              |
+                              v
+                         Parquet Dataset
+```
+
+**Important:** The Terraform deployment is separate from the original operational data pipeline. It demonstrates infrastructure provisioning rather than recreating the entire existing pipeline.
 
 ### Bronze Layer
 
@@ -138,6 +190,8 @@ Stores transformed records in Azure Database for PostgreSQL for SQL queries and 
 **Database:** `urban_city_db`  
 **Schema:** `gold`  
 **Table:** `urban_city_requests`
+
+---
 
 ## 5. Implementation and Visual Evidence
 
@@ -436,14 +490,14 @@ The four tasks execute sequentially:
 
 ```text
 extract_data_from_api
-         |
-         v
+        |
+        v
 transform_data_task
-         |
-         v
+        |
+        v
 urban_city_table
-         |
-         v
+        |
+        v
 run_data_factory
 ```
 
@@ -485,6 +539,118 @@ This demonstrates successful workflow execution across Python ingestion, Polars 
 ![Airflow PostgreSQL and Data Factory Success](screenshots/19-airflow-postgresql-datafactory-success.png)
 
 The successful Airflow run confirms task execution. Independent verification of Gold-layer row counts following the latest orchestrated run remains a follow-up validation step.
+
+### Phase 9: Terraform Infrastructure as Code
+
+**Status: Completed (Separate Infrastructure Deployment)**
+
+To extend the project beyond data engineering and demonstrate cloud infrastructure automation, I implemented a separate Azure infrastructure deployment using Terraform.
+
+The objective was to practise provisioning, configuring, and managing cloud resources declaratively rather than relying entirely on manual configuration through the Azure Portal.
+
+The Terraform configuration is maintained in:
+
+`terraform/main.tf`
+
+A PostgreSQL password input variable is declared in:
+
+`terraform/variables.tf`
+
+This implementation demonstrates infrastructure provisioning without claiming that the original operational data pipeline was created entirely using Terraform.
+
+#### Infrastructure Provisioned
+
+| Azure Resource | Purpose |
+|---|---|
+| Resource Group (`urban-city-rgg`) | Organises project infrastructure |
+| Storage Account (`urbancitystoragemoyo2`) | Provides cloud object storage |
+| Bronze Container | Raw data storage |
+| Silver Container | Transformed data storage |
+| PostgreSQL Flexible Server (`urbancitypgserver`) | Managed relational database infrastructure |
+| PostgreSQL Database (`urban_city_db`) | Database for structured data |
+| Azure Data Factory (`urbancityfactorymoyo2026`) | Data integration service |
+| Blob Storage Linked Service (`blob_storage_ls`) | Connects Data Factory to Azure Storage |
+| Parquet Dataset (`urban_city_parquet_ds`) | Defines the Silver-layer Parquet dataset |
+
+#### Terraform Implementation
+
+The configuration uses the AzureRM provider and resource references to establish dependencies between infrastructure components.
+
+The implementation demonstrates:
+
+- Declarative infrastructure provisioning using HCL.
+- Azure resource configuration and management.
+- Terraform provider configuration.
+- Resource dependencies and references.
+- Input variables for sensitive configuration.
+- Terraform validation and execution planning.
+- Infrastructure deployment using `terraform apply`.
+- Verification of deployed resources in the Azure Portal.
+
+#### Terraform Configuration
+
+![Terraform Configuration](screenshots/20-terraform-code.png)
+
+#### Terraform Validation
+
+![Terraform Validation](screenshots/21-terraform-validation.png)
+
+#### Azure Infrastructure Deployment
+
+![Terraform Azure Resources](screenshots/22-terraform-azure-demo.png)
+
+#### PostgreSQL Deployment
+
+Provisioned an Azure PostgreSQL Flexible Server and database using Terraform.
+
+![Terraform PostgreSQL Deployment](screenshots/23-terraform-postgresql-deployment.png)
+
+#### PostgreSQL Flexible Server Verification
+
+Verified the PostgreSQL Flexible Server in the Azure Portal.
+
+![Azure PostgreSQL Flexible Server](screenshots/24-azure-postgresql-flexible-server.png)
+
+#### Azure Data Factory Deployment
+
+Provisioned Azure Data Factory, an Azure Blob Storage linked service, and a Parquet dataset using Terraform.
+
+![Terraform Data Factory Deployment](screenshots/25-terraform-data-factory-deployment.png)
+
+#### Azure Data Factory Overview
+
+Verified that the new Data Factory resource was created.
+
+![Azure Data Factory Overview](screenshots/26-azure-data-factory-overview.png)
+
+#### Azure Blob Storage Linked Service
+
+The linked service `blob_storage_ls` was created through Terraform and verified in Azure Data Factory Studio.
+
+![Azure Blob Storage Linked Service](screenshots/27-data-factory-blob-linked-service.png)
+
+#### Parquet Dataset Configuration
+
+The dataset `urban_city_parquet_ds` was created with the following configuration:
+
+| Property | Configuration |
+|---|---|
+| Linked service | `blob_storage_ls` |
+| Container | `silver` |
+| Filename | `urban_service_requests.parquet` |
+| Compression | Snappy |
+
+![Azure Data Factory Parquet Dataset](screenshots/28-data-factory-parquet-dataset.png)
+
+#### Terraform Deployment Scope
+
+The Terraform deployment is a separate Infrastructure as Code demonstration.
+
+It demonstrates infrastructure provisioning and configuration but does not recreate or execute the complete original data pipeline.
+
+The Terraform-managed Parquet dataset defines a storage location. Its creation alone does not confirm that the referenced file has been uploaded to the separate Storage Account.
+
+---
 
 ## 6. Challenges and Lessons Learned
 
@@ -550,6 +716,25 @@ Used Azure Data Factory execution metrics and Airflow task states to inspect pip
 
 The experience highlighted the difference between successful task execution and independently verifying data completeness and quality.
 
+### Terraform Configuration and Deployment
+
+During the Terraform implementation, I encountered a duplicate variable declaration and resolved it by maintaining the PostgreSQL password variable in `variables.tf`.
+
+I also encountered a `DataFactoryNameInUse` error because the requested Azure Data Factory name was unavailable.
+
+I resolved the issue by selecting a different globally unique Data Factory name and reviewing the Terraform execution plan before deployment.
+
+This strengthened my understanding of:
+
+- Terraform configuration organisation.
+- Azure resource naming requirements.
+- Terraform validation and execution planning.
+- Resource dependencies.
+- Infrastructure troubleshooting.
+- Azure infrastructure deployment.
+
+---
+
 ## 7. Next Steps
 
 - Verify Gold-layer row counts following the latest Airflow-triggered pipeline run.
@@ -558,7 +743,12 @@ The experience highlighted the difference between successful task execution and 
 - Explore more advanced Airflow scheduling and orchestration practices.
 - Develop SQL queries for operational analysis.
 - Explore analytical reporting and visualisation.
-- Finalise the architecture diagram and portfolio documentation.
+- Implement Terraform remote state management.
+- Explore infrastructure CI/CD using GitHub Actions.
+- Improve infrastructure security and access controls.
+- Explore integrating Terraform-managed infrastructure with a reproducible data pipeline.
+
+---
 
 ## 8. Skills Demonstrated
 
@@ -579,14 +769,21 @@ The experience highlighted the difference between successful task execution and 
 - Astronomer Astro CLI.
 - Cloud connectivity troubleshooting.
 - Pipeline monitoring and execution validation.
+- Terraform and HashiCorp Configuration Language (HCL).
+- AzureRM provider configuration.
+- Infrastructure as Code.
+- Azure resource dependency management.
+- Terraform validation, planning, and deployment.
 - Git and GitHub version control.
 - Technical documentation and implementation evidence.
 
+---
+
 ## 9. Project Status
 
-**CIVIC PULSE is an active data engineering portfolio project.**
+**CIVIC PULSE is an active cloud and data engineering portfolio project.**
 
-The following components have been implemented:
+The core data pipeline has been implemented and successfully executed. Terraform infrastructure provisioning has also been completed as a separate demonstration.
 
 | Component | Status |
 |---|---|
@@ -602,16 +799,52 @@ The following components have been implemented:
 | Airflow PostgreSQL integration | Successfully executed |
 | Airflow Azure Data Factory integration | Successfully executed |
 | Full four-task Airflow DAG | Successfully executed |
+| Terraform Resource Group and Storage | Successfully deployed |
+| Terraform PostgreSQL infrastructure | Successfully deployed |
+| Terraform Azure Data Factory | Successfully deployed |
+| Terraform Blob Storage linked service | Configured and verified |
+| Terraform Parquet dataset | Configured and verified |
 | Independent validation of latest Gold-layer data | Pending |
 | Automated data quality checks | Planned |
 | SQL analytics and reporting | Planned |
 
-The Azure Data Factory Copy activity previously reported **654,156 records read and written**.
+### Key Results
 
-The Apache Airflow DAG successfully executed all four tasks, demonstrating orchestration of ingestion, transformation, PostgreSQL table preparation, and Azure Data Factory execution.
+**Azure Data Factory**
 
-Further development will focus on data quality validation, monitoring, analytical SQL queries, and reporting.
+- Successfully executed the Silver-to-Gold Copy activity.
+- Reported 654,156 records read.
+- Reported 654,156 records written.
+- Completed the Copy activity in 30 seconds.
+
+**Apache Airflow**
+
+- Successfully implemented the `urban_city_requests` DAG.
+- Integrated Python ingestion and Polars transformation.
+- Integrated PostgreSQL SQL execution.
+- Integrated Azure Data Factory pipeline triggering.
+- Completed a successful four-task DAG run.
+
+**Terraform**
+
+- Provisioned Azure infrastructure using Terraform.
+- Created Azure Storage resources.
+- Deployed PostgreSQL Flexible Server and database.
+- Created Azure Data Factory.
+- Configured an Azure Blob Storage linked service.
+- Created and verified a Parquet dataset definition.
+- Documented deployment and verification evidence.
+
+### Future Development
+
+Further development will focus on data quality validation, monitoring, analytical SQL queries, reporting, and infrastructure automation.
 
 ---
 
-**Built as a practical cloud and data engineering learning project, with a focus on reproducible implementation, troubleshooting, workflow orchestration, and technical documentation.**
+## 10. Repository
+
+**GitHub:** https://github.com/moyooyeniyi/CIVIC_PULSE_PROJECT
+
+---
+
+**Built as a practical cloud and data engineering portfolio project, with a focus on reproducible implementation, troubleshooting, workflow orchestration, Infrastructure as Code, and technical documentation.**
