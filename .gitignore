@@ -2,5 +2,7 @@ environ/
 __pycache__/
 .env
 data
-.astro
 airflow_settings.yaml
+credentials.sh
+.astro/
+dags/sql/file.txt
