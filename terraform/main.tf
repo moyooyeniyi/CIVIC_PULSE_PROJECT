@@ -79,3 +79,29 @@ resource "azurerm_postgresql_flexible_server_database" "db_database" {
     prevent_destroy = false
   }
 }
+
+# Data Factory
+resource "azurerm_data_factory" "data_factory_server" {
+  name                = "urbancityfactorymoyo2026"
+  location            = azurerm_resource_group.urban_city_rg.location
+  resource_group_name = azurerm_resource_group.urban_city_rg.name
+}
+
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "blobstoragels" {
+  name              = "blob_storage_ls"
+  data_factory_id   = azurerm_data_factory.data_factory_server.id
+  connection_string = azurerm_storage_account.urban_city_storage.primary_connection_string
+}
+
+resource "azurerm_data_factory_dataset_parquet" "urbancityds" {
+  name                = "urban_city_parquet_ds"
+  data_factory_id     = azurerm_data_factory.data_factory_server.id
+  linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.blobstoragels.name
+
+  compression_codec = "snappy"
+
+  azure_blob_storage_location {
+    container = azurerm_storage_container.silver.name
+    filename  = "urban_service_requests.parquet"
+  }
+}
