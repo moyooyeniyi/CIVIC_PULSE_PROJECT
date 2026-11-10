@@ -6,3 +6,7 @@ airflow_settings.yaml
 credentials.sh
 .astro/
 dags/sql/file.txt
+.terraform
+*.tfstate
+*.tfstate.*
+credentials.txt
